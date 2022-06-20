@@ -78,9 +78,6 @@ export default function(ctx) {
   };
 
   events.touchstart = function(event) {
-    // Prevent emulated mouse events because we will fully handle the touch here.
-    // This does not stop the touch events from propogating to mapbox though.
-    event.originalEvent.preventDefault();
     if (!ctx.options.touchEnabled) {
       return;
     }
@@ -89,13 +86,25 @@ export default function(ctx) {
       time: new Date().getTime(),
       point: event.point
     };
+
     const target = featuresAt.touch(event, null, ctx)[0];
+
+    // If there are no mapbox targets nearby, let the event propagate through
+    if (!target && currentModeName === 'simple_select') {
+      return;
+    }
+
+    // Prevent emulated mouse events because we will fully handle the touch here.
+    // This does not stop the touch events from propogating to mapbox though.
+    // event.originalEvent.preventDefault();
+
     event.featureTarget = target;
     currentMode.touchstart(event);
   };
 
   events.touchmove = function(event) {
-    event.originalEvent.preventDefault();
+    // event.originalEvent.preventDefault();
+
     if (!ctx.options.touchEnabled) {
       return;
     }
@@ -105,13 +114,21 @@ export default function(ctx) {
   };
 
   events.touchend = function(event) {
-    event.originalEvent.preventDefault();
+    // event.originalEvent.preventDefault();
+
     if (!ctx.options.touchEnabled) {
       return;
     }
 
     const target = featuresAt.touch(event, null, ctx)[0];
+
+    // If there are no mapbox targets nearby, let the event propagate through
+    if (!target && currentModeName === 'simple_select') {
+      return;
+    }
+
     event.featureTarget = target;
+
     if (isTap(touchStartInfo, {
       time: new Date().getTime(),
       point: event.point
